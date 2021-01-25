@@ -13,7 +13,8 @@ def createMdl(ite=100):
   print('Random sampling starts ...')
   for iRand in range(ite):
     # sigma * np.random.randn(...) + mu
-    xDummy = np.random.randn(1, totalsizeParams)
+    xDummy = np.random.randn(1, totalsizeParams) # sigma = 1 and mu = 1
+    xAccpeted = xDummy[0,:]
     if objFcn(xDummy[0,:]) < valDummy:
       valDummy = objFcn(xDummy[0,:])
       xAccpeted = xDummy[0,:]
@@ -41,13 +42,16 @@ def objFcn(x, flag = 0):
   C1 = x[A[0]*A[1] + B[0]*B[1] : A[0]*A[1] + B[0]*B[1] + C[0]*C[1]]
 
   # Reshape the matrices
-  A1 = np.reshape(A1, (A[0], A[1])) 
-  B1 = np.reshape(B1, (B[0], B[1])) 
-  C1 = np.reshape(C1, (C[0], C[1])) 
+  A1 = np.reshape(A1, (A[0], A[1])) # No of states X No of states
+  B1 = np.reshape(B1, (B[0], B[1])) # No of states X No of inputs
+  C1 = np.reshape(C1, (C[0], C[1])) # No of outputs X No of states
 
-  # Creating initoal state as 0
+  # Creating initial state as 0
   [r_s, c_s] = np.shape(A1)
   x=np.zeros((r_s,1))
+
+  # For reshaping the input
+  [r_s, c_s] = np.shape(B1)
 
   # Creating a copy of output
   y_p = y.copy()
@@ -56,7 +60,7 @@ def objFcn(x, flag = 0):
   # Expanding through time
   for i in range(r_op) :
     y_p[i] = np.transpose(np.matmul(C1,x))
-    x = np.matmul(A1,x) + np.matmul(B1,u[i].reshape(r_s,1)) #x[k+1]
+    x = np.matmul(A1,x) + np.matmul(B1,u[i].reshape(c_s,1)) #x[k+1]
 
   if flag == 1:
     plt.plot(y[:,0])
@@ -73,19 +77,19 @@ def objFcn(x, flag = 0):
 # Format of input data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 # Define the shapes of system matrices as global variables
-A = [4,4] # No of states = 04
-B = [4,4] # No of inputs = 04
-C = [3,4] # No of outputs = 03
+A = [30,30] # No of states X No of states
+B = [30,25] # No of states X No of inputs
+C = [22,30] # No of outputs X No of states
 
 # Dummy input data as global variables
 import time
 start = time.time()
-u = np.ones((5000, 4))
-y = np.ones((5000, 3))
+u = np.ones((100, 25)) # Samples X No of inputs
+y = np.ones((100, 22)) # Samples X No of outputs
 
 # Creating the model
-createMdl(1000)
+createMdl(100)
 end = time.time()
 
 # Time count
-print('Total time elapsd: ', end - start)
+print('Total time elapsed: ', end - start)
