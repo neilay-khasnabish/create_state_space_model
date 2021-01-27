@@ -6,12 +6,15 @@ import matplotlib.pyplot as plt
 
 # Creating the class
 class cssm :
-  def __init__(self, A, B, C, u, y):
+  def __init__(self, A, B, C,  u, y, A_prio = 1, B_prio = 1, C_prio = 1):
       self.A = A
       self.B = B
       self.C = C
       self.u = u
       self.y = y
+      self.A_prio = A_prio
+      self.B_prio = B_prio
+      self.C_prio = C_prio
 
   # Create the matrices
   def createMat(self, x) :
@@ -26,6 +29,12 @@ class cssm :
     A1 = np.reshape(A1, (self.A[0], self.A[1])) # No of states X No of states
     B1 = np.reshape(B1, (self.B[0], self.B[1])) # No of states X No of inputs
     C1 = np.reshape(C1, (self.C[0], self.C[1])) # No of outputs X No of states
+
+    # Restructuring the matrices as per the prior information
+    A1 = np.multiply(A1, self.A_prio)
+    B1 = np.multiply(B1, self.B_prio)
+    C1 = np.multiply(C1, self.C_prio)
+
     return A1, B1, C1
 
   # Creating the objective function
@@ -105,11 +114,6 @@ class cssm :
 import time
 start = time.time()
 
-# Define the shapes of system matrices as global variables
-A = [2,2] # No of states X No of states
-B = [2,1] # No of states X No of inputs
-C = [1,2] # No of outputs X No of states
-
 # Create dummy data having 100 data points
 u = np.ones((100, 1)) # Samples X No of inputs
 y = np.ones((100, 1)) # Samples X No of outputs
@@ -133,8 +137,22 @@ plt.show()
 print('Eigen values of Actual System matrix: ', linalg.eigvals(a_mat))
 print('=============================================================')
 
+
+# Define the shapes of system matrices as global variables
+A = [2,2] # No of states X No of states
+B = [2,1] # No of states X No of inputs
+C = [1,2] # No of outputs X No of states
+
+# Define the prior information about the matrices in terms of 1 and 0
+# Make the elements of the matrices 0 which are calculated as 0 while converting
+# ODE to SS. Rest of the coefficients, which are needed to be estimated, are all 1s
+A_prio = np.array([[1, 1],[1, 0]])
+B_prio = np.array([[1],[0]])
+C_prio = np.array([0, 1])
+
 # Creating the model
-ssm = cssm(A, B, C, u, y)
+ssm = cssm(A, B, C, u, y, A_prio, B_prio, C_prio)
+# ssm = cssm(A, B, C, u, y) # Otherwise
 A1, B1, C1 = ssm.optimizeMdl(ite1=1000)
 print('The estimated matrices are:')
 print(A1)
